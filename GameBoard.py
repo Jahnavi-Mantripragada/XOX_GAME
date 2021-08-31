@@ -4,6 +4,7 @@ This is code for XOX Game using tkinter.
 # The Import Section
 from tkinter import *
 from functools import partial
+from tkinter import messagebox
 
 # The Constants
 BACKGROUND = "bg"
@@ -14,10 +15,20 @@ FOREGROUND = "fg"
 X, O = "X", "O"
 
 
+def messageBox(title, text):
+    root = Tk()
+    root.withdraw()
+    messagebox.showinfo(title, text)
+    root.destroy()
+
+
 class GameBoard(Tk):
 
-    def __init__(self):
+    def __init__(self, player1="", player2=""):
         super().__init__()
+
+        self.player1 = player1
+        self.player2 = player2
 
         # This frame holds the cells of the board. (Buttons)
         self.f = Frame(self, width=50, height=50)
@@ -46,6 +57,11 @@ class GameBoard(Tk):
         self.setWidgets()
         self.resizable(False, False)
 
+    def getPlayerName(self):
+        if self.curr_player == X:
+            return self.player1
+        return self.player2
+
     def setWidgets(self):
         self.AnnouncementLabel.pack()
         self.AnnouncementLabel.config(font=('Helvetica bold', 20))
@@ -68,14 +84,14 @@ class GameBoard(Tk):
     def initialState(self):
         self.curr_player = X
         self.pressed = 0
-        self.AnnouncementLabel["text"] = "X's Turn"
+        self.AnnouncementLabel["text"] = "{}'s Turn".format(self.getPlayerName())
 
     # Creating widgets: buttons! as a board.
     def buildBoard(self):
         for i in range(3):
             rows = []
             for j in range(3):
-                b = Button(self.f, text="", padx=40, pady=20, command=partial(self.move, i, j), bg="#C0C0C0", bd=10)
+                b = Button(self.f, text="", padx=40, pady=20, command=partial(self.move, i, j), bg="#C0C0C0")
                 b.grid(row=i + 1, column=j + 1)
                 b.config(width=10, height=2)
                 rows.append(b)
@@ -137,17 +153,19 @@ class GameBoard(Tk):
         for values in self.players[player]:
             self.board[i][j][values] = self.players[player][values]
         if self.checkIfAPlayerWon(i, j):
-            winLabel = "{} WINS!".format(self.curr_player)
+            winLabel = "{} WINS!".format(self.getPlayerName())
             self.AnnouncementLabel["text"] = winLabel
             self.disableAllCells()
             rematch = "Rematch?"
             self.reLabel["text"] = rematch
+            messageBox("Winner!", winLabel)
         elif self.pressed == 9:
             TieLabel = "That's a Draw!"
             self.AnnouncementLabel["text"] = TieLabel
             self.disableAllCells()
             rematch = "Rematch?"
             self.reLabel["text"] = rematch
+            messageBox("Well Played!", TieLabel)
         else:
             self.changePlayer()
-            self.AnnouncementLabel["text"] = "{}'s Turn".format(self.curr_player)
+            self.AnnouncementLabel["text"] = "{}'s Turn".format(self.getPlayerName())
