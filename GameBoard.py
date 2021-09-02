@@ -1,10 +1,17 @@
 """
 This is code for XOX Game using tkinter.
 """
+# TODO: For Single Player, we need to ask if they want the computer to take the first move may be through a dialog box.
+# TODO: May be add sounds for each button click.
+# TODO: Add a better way for the computer to play rather than computerRandomMove
+# Note: Considered minimax for the computer move, but that would make the computer already know the moves to win or tie.
+
+
 # The Import Section
 from tkinter import *
 from functools import partial
 from tkinter import messagebox
+import random
 
 # The Constants
 BACKGROUND = "bg"
@@ -15,7 +22,7 @@ FOREGROUND = "fg"
 X, O = "X", "O"
 
 
-def messageBox(title, text):
+def messageBoxInfo(title, text):
     root = Tk()
     root.withdraw()
     messagebox.showinfo(title, text)
@@ -27,8 +34,11 @@ class GameBoard(Tk):
     def __init__(self, player1="", player2=""):
         super().__init__()
 
+        self.s = set()
         self.player1 = player1
-        self.player2 = player2
+        self.player2 = player2 if len(player2) != 0 else "Computer"
+
+        self.OnePlayerGame = len(player2) == 0
 
         # This frame holds the cells of the board. (Buttons)
         self.f = Frame(self, width=50, height=50)
@@ -66,10 +76,11 @@ class GameBoard(Tk):
         self.AnnouncementLabel.pack()
         self.AnnouncementLabel.config(font=('Helvetica bold', 20))
 
+        self.buildBoard()
+
         # Initialization for a new game.
         self.initialState()
 
-        self.buildBoard()
         self.f.pack()
 
         self.top.pack(side=TOP)
@@ -158,14 +169,32 @@ class GameBoard(Tk):
             self.disableAllCells()
             rematch = "Rematch?"
             self.reLabel["text"] = rematch
-            messageBox("Winner!", winLabel)
+            messageBoxInfo("Winner!", winLabel)
         elif self.pressed == 9:
             TieLabel = "That's a Draw!"
             self.AnnouncementLabel["text"] = TieLabel
             self.disableAllCells()
             rematch = "Rematch?"
             self.reLabel["text"] = rematch
-            messageBox("Well Played!", TieLabel)
+            messageBoxInfo("Well Played!", TieLabel)
         else:
             self.changePlayer()
             self.AnnouncementLabel["text"] = "{}'s Turn".format(self.getPlayerName())
+            if self.OnePlayerGame and self.getPlayerName() == 'Computer':
+                self.computerRandomMove()
+
+    def computerRandomMove(self):
+        s = set()
+        for i in range(3):
+            for j in range(3):
+                if self.board[i][j][STATE] != DISABLED:
+                    s.add((i, j))
+        if s:
+            p = random.sample(s, 1)[0]
+            self.s.discard(p)
+            self.move(p[0], p[1])
+
+
+if __name__ == "__main__":
+    g = GameBoard("jack")
+    g.mainloop()
